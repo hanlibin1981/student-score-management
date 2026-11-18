@@ -1,14 +1,18 @@
 <template>
   <div v-if="auth.role === 'STUDENT'">
-    <el-row :gutter="16">
+    <el-row :gutter="16" justify="center">
       <el-col :span="8">
         <el-card>
-          <div class="stat"><span>已修课程</span><strong>{{ myCourses.length }}</strong></div>
+          <div class="stat stat-centered">
+            <span>已修课程</span><strong>{{ myCourses.length }}</strong>
+          </div>
         </el-card>
       </el-col>
       <el-col :span="8">
         <el-card>
-          <div class="stat"><span>平均总评</span><strong>{{ averageScore }}</strong></div>
+          <div class="stat stat-centered">
+            <span>平均总评</span><strong>{{ averageScore }}</strong>
+          </div>
         </el-card>
       </el-col>
     </el-row>
@@ -145,6 +149,10 @@ onMounted(async () => {
 .stat span {
   color: #909399;
   font-size: 14px;
+}
+.stat-centered {
+  align-items: center;
+  text-align: center;
 }
 .stat strong {
   font-size: 28px;

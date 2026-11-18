@@ -1,6 +1,6 @@
 <template>
   <div>
-    <el-row :gutter="16">
+    <el-row :gutter="16" justify="center">
       <el-col :span="8">
         <el-card>
           <div class="stat"><span>已修课程</span><strong>{{ totals.length }}</strong></div>
@@ -83,7 +83,9 @@ onMounted(async () => {
 .stat {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 8px;
+  text-align: center;
 }
 .stat span {
   color: #909399;

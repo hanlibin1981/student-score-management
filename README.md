@@ -65,6 +65,16 @@ npm run dev
 
 访问 <http://localhost:5173>。
 
+## 界面预览
+
+| 管理员仪表盘 | 成绩分析 |
+| --- | --- |
+| ![管理员仪表盘](docs/screenshots/dashboard-admin.png) | ![成绩分析](docs/screenshots/analysis-distribution.png) |
+
+| 成绩录入 | 学生端「我的成绩」 |
+| --- | --- |
+| ![成绩录入](docs/screenshots/scores-after-save.png) | ![学生端我的成绩](docs/screenshots/my-scores.png) |
+
 ## 演示账号
 
 | 角色 | 用户名 | 密码 |

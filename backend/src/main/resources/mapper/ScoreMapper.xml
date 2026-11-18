@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.score.mapper.ScoreMapper">
+
+    <select id="selectExamScoreRows" resultType="com.score.vo.ExamScoreRowVO">
+        SELECT s.id AS studentId,
+               s.student_no AS studentNo,
+               s.name AS studentName,
+               s.class_name AS className,
+               sc.id AS scoreId,
+               sc.score AS score
+        FROM student s
+        LEFT JOIN score sc ON sc.student_id = s.id AND sc.exam_id = #{examId}
+        <where>
+            <if test="className != null and className != ''">
+                AND s.class_name = #{className}
+            </if>
+        </where>
+        ORDER BY s.student_no
+    </select>
+
+    <select id="selectCourseTotals" resultType="com.score.vo.StudentTotalVO">
+        SELECT sc.student_id AS studentId,
+               ROUND(AVG(sc.score * 100.0 / e.full_score), 1) AS total
+        FROM score sc
+        JOIN exam e ON sc.exam_id = e.id
+        WHERE e.course_id = #{courseId}
+        GROUP BY sc.student_id
+    </select>
+
+    <select id="selectStudentCourseTotals" resultType="com.score.vo.StudentCourseTotalVO">
+        SELECT c.id AS courseId,
+               c.name AS courseName,
+               ROUND(AVG(sc.score * 100.0 / e.full_score), 1) AS total
+        FROM score sc
+        JOIN exam e ON sc.exam_id = e.id
+        JOIN course c ON e.course_id = c.id
+        WHERE sc.student_id = #{studentId}
+        GROUP BY c.id, c.name
+        ORDER BY c.id
+    </select>
+
+    <select id="selectDistribution" resultType="com.score.vo.DistributionItemVO">
+        SELECT bucket AS name, COUNT(*) AS count
+        FROM (
+            SELECT CASE
+                       WHEN sc.score * 100.0 / e.full_score >= 90 THEN '90-100'
+                       WHEN sc.score * 100.0 / e.full_score >= 80 THEN '80-89'
+                       WHEN sc.score * 100.0 / e.full_score >= 70 THEN '70-79'
+                       WHEN sc.score * 100.0 / e.full_score >= 60 THEN '60-69'
+                       ELSE '&lt;60'
+                   END AS bucket
+            FROM score sc
+            JOIN exam e ON sc.exam_id = e.id
+            WHERE sc.exam_id = #{examId}
+        ) t
+        GROUP BY bucket
+    </select>
+
+    <select id="selectFailing" resultType="com.score.vo.FailingStudentVO">
+        SELECT s.student_no AS studentNo,
+               s.name AS name,
+               sc.score AS score,
+               e.full_score AS fullScore
+        FROM score sc
+        JOIN student s ON sc.student_id = s.id
+        JOIN exam e ON sc.exam_id = e.id
+        WHERE sc.exam_id = #{examId}
+          AND sc.score * 100.0 / e.full_score &lt; #{threshold}
+        ORDER BY sc.score ASC
+    </select>
+
+    <select id="selectOverallStats" resultType="com.score.vo.OverallStatsVO">
+        SELECT COUNT(*) AS totalScores,
+               ROUND(AVG(sc.score * 100.0 / e.full_score), 1) AS avgScore,
+               ROUND(SUM(CASE WHEN sc.score * 100.0 / e.full_score >= 60 THEN 1 ELSE 0 END)
+                     * 100.0 / COUNT(*), 1) AS passRate
+        FROM score sc
+        JOIN exam e ON sc.exam_id = e.id
+        JOIN course c ON e.course_id = c.id
+        <where>
+            <if test="teacherId != null">
+                AND c.teacher_id = #{teacherId}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectCourseComparison" resultType="com.score.vo.CourseComparisonVO">
+        SELECT c.id AS courseId,
+               c.name AS courseName,
+               ROUND(AVG(sc.score * 100.0 / e.full_score), 1) AS avgScore,
+               ROUND(SUM(CASE WHEN sc.score * 100.0 / e.full_score >= 60 THEN 1 ELSE 0 END)
+                     * 100.0 / COUNT(*), 1) AS passRate
+        FROM course c
+        JOIN exam e ON e.course_id = c.id
+        JOIN score sc ON sc.exam_id = e.id
+        <where>
+            <if test="teacherId != null">
+                AND c.teacher_id = #{teacherId}
+            </if>
+        </where>
+        GROUP BY c.id, c.name
+        ORDER BY c.id
+    </select>
+
+    <select id="selectTrend" resultType="com.score.vo.TrendPointVO">
+        SELECT e.name AS examName,
+               e.exam_date AS examDate,
+               ROUND(sc.score * 100.0 / e.full_score, 1) AS percent
+        FROM score sc
+        JOIN exam e ON sc.exam_id = e.id
+        WHERE sc.student_id = #{studentId}
+          AND e.course_id = #{courseId}
+        ORDER BY e.exam_date, e.id
+    </select>
+</mapper>

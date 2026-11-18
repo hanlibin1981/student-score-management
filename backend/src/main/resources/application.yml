@@ -9,8 +9,8 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
   sql:
     init:
-      mode: always
-      schema-locations: classpath:schema.sql
+      # 建表由 DatabaseBootstrap 在确认数据库状态后执行，避免重复初始化
+      mode: never
 
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml

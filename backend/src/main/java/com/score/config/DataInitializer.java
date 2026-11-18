@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -24,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
+@Order(1)
 @RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
 
@@ -39,6 +41,7 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) {
         if (userMapper.selectCount(null) > 0) {
+            log.info("检测到已有用户数据，跳过演示数据初始化");
             return;
         }
         log.info("初始化演示数据...");

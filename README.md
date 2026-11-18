@@ -34,14 +34,22 @@
 
 ### 2. 初始化数据库
 
+只需要安装并启动 MySQL，**不需要手动建库建表**：
+
 ```bash
 brew install mysql
 brew services start mysql
-mysql -uroot -e "CREATE DATABASE IF NOT EXISTS score_db DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 ```
 
 如果 MySQL root 有密码，修改 `backend/src/main/resources/application.yml` 中的 `username` / `password`。
-建表脚本由 `schema.sql` 在启动时自动执行（`CREATE TABLE IF NOT EXISTS`）。
+
+应用启动时 `DatabaseBootstrap` 会连接 MySQL 服务端（不指定库）检查状态：
+
+- **`score_db` 不存在** → 自动创建数据库，建表并写入演示数据；
+- **`score_db` 存在但没有核心表**（如手动建的空库）→ 只建表并写入演示数据；
+- **`score_db` 已存在且已有 `sys_user` 表** → 完全跳过建表与演示数据初始化，启动日志输出"已存在且已完成初始化，跳过初始化"。
+
+因此重复启动不会重复建表或插入演示数据。
 
 > Homebrew 安装的 MySQL 8.4 若 `mysql` 命令不在 PATH 中，用完整路径
 > `/usr/local/opt/mysql@8.4/bin/mysql -uroot ...`，或 `export PATH="/usr/local/opt/mysql@8.4/bin:$PATH"`。

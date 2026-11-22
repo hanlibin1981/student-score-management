@@ -47,6 +47,74 @@ class ScoreIT extends BaseIntegrationTest {
     }
 
     @Test
+    void sessionMatrixPutsAllSubjectsInOneRow() throws Exception {
+        Exam math = exam("高等数学", "期中考试");
+        Exam data = exam("数据结构", "期中考试");
+        Exam english = exam("大学英语", "期中考试");
+
+        mockMvc.perform(get("/api/scores/session").param("examName", "期中考试")
+                        .header("Authorization", "Bearer " + adminToken()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.examName").value("期中考试"))
+                .andExpect(jsonPath("$.data.exams.length()").value(3))
+                .andExpect(jsonPath("$.data.exams[0].courseName").value("高等数学"))
+                .andExpect(jsonPath("$.data.rows.length()").value(8))
+                .andExpect(jsonPath("$.data.rows[0].studentNo").value("2026001"))
+                .andExpect(jsonPath("$.data.rows[0].scores['" + math.getId() + "']").value(72))
+                .andExpect(jsonPath("$.data.rows[0].scores['" + data.getId() + "']").value(85))
+                .andExpect(jsonPath("$.data.rows[0].scores['" + english.getId() + "']").value(57));
+    }
+
+    @Test
+    void sessionForTeacherOnlyContainsOwnCourses() throws Exception {
+        mockMvc.perform(get("/api/scores/session").param("examName", "期中考试")
+                        .header("Authorization", "Bearer " + teacher1Token()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.exams.length()").value(2))
+                .andExpect(jsonPath("$.data.exams[0].courseName").value("高等数学"))
+                .andExpect(jsonPath("$.data.exams[1].courseName").value("数据结构"));
+
+        mockMvc.perform(get("/api/scores/session").param("examName", "期中考试")
+                        .header("Authorization", "Bearer " + teacher2Token()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.exams.length()").value(1))
+                .andExpect(jsonPath("$.data.exams[0].courseName").value("大学英语"));
+    }
+
+    @Test
+    void sessionFiltersStudentsByClass() throws Exception {
+        mockMvc.perform(get("/api/scores/session").param("examName", "期中考试")
+                        .param("className", "软件工程2601")
+                        .header("Authorization", "Bearer " + adminToken()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.rows.length()").value(8))
+                .andExpect(jsonPath("$.data.exams.length()").value(3));
+
+        mockMvc.perform(get("/api/scores/session").param("examName", "期中考试")
+                        .param("className", "不存在的班级")
+                        .header("Authorization", "Bearer " + adminToken()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.rows.length()").value(0))
+                .andExpect(jsonPath("$.data.exams.length()").value(3));
+    }
+
+    @Test
+    void unknownExamSessionReturnsEmptyMatrix() throws Exception {
+        mockMvc.perform(get("/api/scores/session").param("examName", "不存在的考试")
+                        .header("Authorization", "Bearer " + adminToken()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.exams.length()").value(0))
+                .andExpect(jsonPath("$.data.rows.length()").value(0));
+    }
+
+    @Test
+    void studentCannotReadSessionMatrix() throws Exception {
+        mockMvc.perform(get("/api/scores/session").param("examName", "期中考试")
+                        .header("Authorization", "Bearer " + studentToken()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     void batchSaveUpdatesExistingScore() throws Exception {
         Exam exam = exam("高等数学", "期中考试");
         Student student = student("2026001");

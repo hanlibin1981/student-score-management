@@ -9,11 +9,18 @@ import com.score.entity.Score;
 import com.score.mapper.CourseMapper;
 import com.score.mapper.ExamMapper;
 import com.score.mapper.ScoreMapper;
+import com.score.security.SecurityUtils;
+import com.score.vo.ExamSessionOptionVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +40,34 @@ public class ExamService {
                 .eq(Exam::getCourseId, courseId)
                 .orderByAsc(Exam::getExamDate)
                 .orderByAsc(Exam::getId));
+    }
+
+    /**
+     * 按考试名称聚合出“考试场次”，供成绩录入页按场次展示各科成绩。
+     * 教师只看到自己所授课程下的考试。
+     */
+    public List<ExamSessionOptionVO> sessions() {
+        List<Exam> exams = examMapper.selectList(new LambdaQueryWrapper<Exam>()
+                .orderByAsc(Exam::getExamDate)
+                .orderByAsc(Exam::getId));
+        if (!SecurityUtils.isAdmin()) {
+            Set<Long> ownCourseIds = courseMapper.selectList(new LambdaQueryWrapper<Course>()
+                            .eq(Course::getTeacherId, SecurityUtils.currentUserId()))
+                    .stream()
+                    .map(Course::getId)
+                    .collect(Collectors.toSet());
+            exams = exams.stream()
+                    .filter(exam -> ownCourseIds.contains(exam.getCourseId()))
+                    .toList();
+        }
+
+        Map<String, LocalDate> sessionDates = new LinkedHashMap<>();
+        for (Exam exam : exams) {
+            sessionDates.putIfAbsent(exam.getName(), exam.getExamDate());
+        }
+        return sessionDates.entrySet().stream()
+                .map(entry -> new ExamSessionOptionVO(entry.getKey(), entry.getValue()))
+                .toList();
     }
 
     public Exam create(ExamRequest request) {

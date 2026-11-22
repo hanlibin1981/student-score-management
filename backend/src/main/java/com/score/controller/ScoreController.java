@@ -5,6 +5,7 @@ import com.score.dto.ScoreBatchRequest;
 import com.score.service.ScoreService;
 import com.score.vo.ExamScoreRowVO;
 import com.score.vo.MyCourseVO;
+import com.score.vo.SessionScoreVO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -32,6 +33,14 @@ public class ScoreController {
             @RequestParam Long examId,
             @RequestParam(required = false) String className) {
         return Result.ok(scoreService.listByExam(examId, className));
+    }
+
+    @GetMapping("/session")
+    @PreAuthorize("hasAnyRole('ADMIN','TEACHER')")
+    public Result<SessionScoreVO> sessionScores(
+            @RequestParam String examName,
+            @RequestParam(required = false) String className) {
+        return Result.ok(scoreService.sessionScores(examName, className));
     }
 
     @PostMapping("/batch")

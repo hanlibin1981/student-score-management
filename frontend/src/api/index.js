@@ -24,6 +24,7 @@ export const courseApi = {
 
 export const examApi = {
   list: courseId => request.get('/exams', { params: { courseId } }),
+  sessions: () => request.get('/exams/sessions'),
   create: data => request.post('/exams', data),
   update: (id, data) => request.put(`/exams/${id}`, data),
   remove: id => request.delete(`/exams/${id}`)
@@ -31,6 +32,7 @@ export const examApi = {
 
 export const scoreApi = {
   byExam: (examId, className) => request.get('/scores', { params: { examId, className } }),
+  session: (examName, className) => request.get('/scores/session', { params: { examName, className } }),
   saveBatch: items => request.post('/scores/batch', { items }),
   remove: id => request.delete(`/scores/${id}`),
   myCourses: () => request.get('/scores/my')

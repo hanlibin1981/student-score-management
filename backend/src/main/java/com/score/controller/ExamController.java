@@ -4,6 +4,7 @@ import com.score.common.Result;
 import com.score.dto.ExamRequest;
 import com.score.entity.Exam;
 import com.score.service.ExamService;
+import com.score.vo.ExamSessionOptionVO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -29,6 +30,12 @@ public class ExamController {
     @GetMapping
     public Result<List<Exam>> listByCourse(@RequestParam Long courseId) {
         return Result.ok(examService.listByCourse(courseId));
+    }
+
+    @GetMapping("/sessions")
+    @PreAuthorize("hasAnyRole('ADMIN','TEACHER')")
+    public Result<List<ExamSessionOptionVO>> sessions() {
+        return Result.ok(examService.sessions());
     }
 
     @PostMapping

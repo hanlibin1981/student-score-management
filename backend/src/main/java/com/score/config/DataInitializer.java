@@ -52,6 +52,8 @@ public class DataInitializer implements CommandLineRunner {
 
         List<Student> students = new ArrayList<>();
         String[] names = {"张伟", "王芳", "李娜", "刘洋", "陈静", "杨磊", "赵敏", "周杰"};
+        // 性别与姓名一一对应，不能按索引奇偶推断，否则会出现"李娜-男"这类错误数据
+        String[] genders = {"男", "女", "女", "男", "女", "男", "女", "男"};
         for (int i = 0; i < names.length; i++) {
             String studentNo = "2026" + String.format("%03d", i + 1);
             User account = createUser(studentNo, names[i], Role.STUDENT);
@@ -59,7 +61,7 @@ public class DataInitializer implements CommandLineRunner {
             Student student = new Student();
             student.setStudentNo(studentNo);
             student.setName(names[i]);
-            student.setGender(i % 2 == 0 ? "男" : "女");
+            student.setGender(genders[i]);
             student.setClassName("软件工程2601");
             student.setPhone("1380000" + String.format("%04d", i + 1));
             student.setEmail(studentNo + "@example.com");
